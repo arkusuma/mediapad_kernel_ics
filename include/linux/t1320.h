@@ -47,15 +47,36 @@ enum f11_finger_status {
 	f11_finger_inaccurate = 2,
 };
 
+#define FILTER_MIN_SAMPLE 5
+#define FILTER_MAX_SAMPLE 8
+
+/**
+ * MediaPad screen is 1280x800 pixels, and the touchscreen controller
+ * is 3015x1892. So you get 2.365 touchscreen unit for each screen pixel.
+ * FILTER_RADIUS and FILTER_MIN_MOVE are specified as touchscreen unit,
+ * squared.
+ */
+#define FILTER_RADIUS   1258 /* (15 pixels * 2.365)^2 */
+#define FILTER_MIN_MOVE    6 /* (1 pixel * 2.365)^2 */
+
 struct f11_finger_data {
 	enum f11_finger_status status;
 
-	u12 x;
-	u12 y;
-	u8 z;
-
 	unsigned int speed;
 	bool active;
+
+	u12 x[FILTER_MAX_SAMPLE];
+	u12 y[FILTER_MAX_SAMPLE];
+	u8 z[FILTER_MAX_SAMPLE];
+
+	int x_sum, y_sum, z_sum;
+	int x_avg, y_avg, z_avg;
+	int x_last, y_last, z_last;
+
+	int sample_index;
+	int sample_count;
+
+	int dirty;
 };
 
 struct t1320 {
